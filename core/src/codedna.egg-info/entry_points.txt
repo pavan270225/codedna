@@ -1,0 +1,2 @@
+[console_scripts]
+codedna = codedna.cli:main

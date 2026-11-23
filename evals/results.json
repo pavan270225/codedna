@@ -1,0 +1,16 @@
+{
+  "without_headers": {
+    "avg_questions": 3.06,
+    "avg_retries": 2.61,
+    "success_rate": 0.78
+  },
+  "with_headers": {
+    "avg_questions": 1.25,
+    "avg_retries": 1.24,
+    "success_rate": 0.61
+  },
+  "improvement": {
+    "questions_reduction_pct": 59.150326797385624,
+    "retries_reduction_pct": 52.490421455938694
+  }
+}

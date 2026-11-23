@@ -1,0 +1,97 @@
+{
+  "name": "codedna",
+  "displayName": "CodeDNA",
+  "description": "Local AI-code attribution with in-source provenance. Tracks Human vs AI edits, shows H/AI ratio in status bar.",
+  "version": "0.1.0",
+  "publisher": "codedna",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Other", "Programming Languages"],
+  "main": "./out/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "codedna.toggleHeaders",
+        "title": "CodeDNA: Toggle Provenance Headers",
+        "category": "CodeDNA"
+      },
+      {
+        "command": "codedna.showReport",
+        "title": "CodeDNA: Show Attribution Report",
+        "category": "CodeDNA"
+      },
+      {
+        "command": "codedna.showRatio",
+        "title": "CodeDNA: Show H/AI Ratio",
+        "category": "CodeDNA"
+      },
+      {
+        "command": "codedna.openSettings",
+        "title": "CodeDNA: Open Settings",
+        "category": "CodeDNA"
+      }
+    ],
+    "configuration": {
+      "title": "CodeDNA",
+      "properties": {
+        "codedna.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable CodeDNA attribution tracking"
+        },
+        "codedna.pythonPath": {
+          "type": "string",
+          "default": "python",
+          "description": "Path to Python interpreter for codedna-core"
+        },
+        "codedna.showStatusBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show H/AI ratio in status bar"
+        },
+        "codedna.showGutterDecorations": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show gutter decorations for AI/human code"
+        },
+        "codedna.autoWriteHeaders": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically write provenance headers on save"
+        }
+      }
+    },
+    "keybindings": [
+      {
+        "command": "codedna.showReport",
+        "key": "ctrl+shift+c",
+        "mac": "cmd+shift+c",
+        "when": "editorTextFocus"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext ts",
+    "test": "vscode-test",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.0",
+    "@vscode/test-cli": "^0.0.6",
+    "@vscode/test-electron": "^2.3.0",
+    "eslint": "^8.55.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0"
+  },
+  "dependencies": {}
+}

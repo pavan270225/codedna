@@ -1,0 +1,132 @@
+# CodeDNA
+
+> Local AI-code attribution with in-source provenance. Tracks every edit in real-time and classifies it as Human / AI-Generated / AI-Modified / Ambiguous. Zero cloud, zero network calls.
+
+## Features
+
+- **Real-time attribution**: Classifies edits as you type (Human, AI-Generated, AI-Modified, Ambiguous)
+- **Status bar ratio**: Live H/AI percentage in VS Code status bar
+- **Gutter decorations**: Color-coded line annotations (green=human, blue=AI-generated, orange=AI-modified, purple=ambiguous)
+- **In-source provenance**: Writes `codedna:` headers to source files so downstream AI agents inherit attribution without rediscovery
+- **CLI tool**: `codedna scan`, `codedna ratio`, `codedna header` for CI/CD and automation
+- **Fully local**: SQLite storage in `~/.codedna/`, no telemetry, no network calls
+
+## Quick Start
+
+### VS Code Extension
+
+1. Install from [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=codedna.codedna) (or `code --install-extension codedna.vsix`)
+2. Open a workspace — CodeDNA starts tracking automatically
+3. See H/AI ratio in status bar (bottom right)
+4. Hover gutter decorations for per-line attribution
+
+### CLI
+
+```bash
+pip install codedna
+
+# Scan a project for provenance headers
+codedna scan .
+
+# Show H/AI ratio for a file
+codedna ratio src/main.py
+
+# View provenance header
+codedna header src/main.py
+
+# Run stdio server (for VS Code extension)
+codedna serve
+```
+
+## Architecture
+
+```
+┌─────────────────┐     JSON-RPC stdio     ┌──────────────────┐
+│  VS Code Ext    │ ◀────────────────────▶ │  codedna-core    │
+│  (TypeScript)   │   classify, ratio,     │  (Python)        │
+│  - onDidChange  │   write_header,        │  - Classifier    │
+│  - status bar   │   get_attributions     │  - SQLite Store  │
+│  - gutter decor │                        │  - Header Writer │
+└─────────────────┘                        └──────────────────┘
+```
+
+## In-Source Provenance Format
+
+CodeDNA writes a compact JSON header as a comment at the top of each tracked file:
+
+```python
+# codedna:{"v":1,"regions":[{"sl":1,"el":10,"a":"human","c":0.9,"ch":45},{"sl":11,"el":25,"a":"ai-generated","c":0.85,"ch":200}],"used_by":["vscode-extension"],"rules":["type-hints"]}
+```
+
+```javascript
+// codedna:{"v":1,"regions":[{"sl":1,"el":10,"a":"human","c":0.9,"ch":45}],"used_by":["vscode-extension"],"rules":[]}
+```
+
+```markdown
+<!-- codedna:{"v":1,"regions":[{"sl":1,"el":10,"a":"human","c":0.9,"ch":45}],"used_by":["vscode-extension"],"rules":[]} -->
+```
+
+This allows any AI agent reading the file to instantly know:
+- Which regions were written by humans vs AI
+- Confidence levels
+- Which agents have already processed this file (`used_by`)
+- Repository-wide rules (`rules`)
+
+## Configuration (VS Code)
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `codedna.enabled` | `true` | Enable attribution tracking |
+| `codedna.pythonPath` | `python` | Path to Python interpreter for codedna-core |
+| `codedna.showStatusBar` | `true` | Show H/AI ratio in status bar |
+| `codedna.showGutterDecorations` | `true` | Show gutter decorations for AI/human code |
+| `codedna.autoWriteHeaders` | `false` | Automatically write provenance headers on save |
+
+## Commands
+
+| Command | Keybinding | Description |
+|---------|------------|-------------|
+| `codedna.toggleHeaders` | — | Toggle provenance header for current file |
+| `codedna.showReport` | `Ctrl+Shift+C` / `Cmd+Shift+C` | Show attribution report webview |
+| `codedna.showRatio` | — | Show H/AI ratio for current file |
+| `codedna.openSettings` | — | Open CodeDNA settings |
+
+## Development
+
+```bash
+# Core
+cd core
+pip install -e ".[dev]"
+pytest
+
+# Extension
+cd extension
+npm install
+npm run compile
+npm run watch  # for development
+
+# Package extension
+npm run package  # produces codedna.vsix
+```
+
+## Classification Heuristics
+
+| Pattern | Classification | Confidence |
+|---------|----------------|------------|
+| Source hint = copilot/cursor/claude | AI-Generated | 90% |
+| ≥10 lines inserted in one event | AI-Generated | 85% |
+| >50 chars/ms typing speed | AI-Generated | 75% |
+| Delete + insert same region | AI-Modified | 65% |
+| Slow typing (<5 chars/ms, >200ms) | Human | 80% |
+| Otherwise | Ambiguous | 50% |
+
+## Privacy
+
+- **Zero network calls**: All processing happens locally
+- **Local storage**: SQLite database in `~/.codedna/attributions.db`
+- **No telemetry**: No usage data leaves your machine
+- **Open source**: MIT licensed, fully auditable
+
+## License
+
+MIT © CodeDNA Contributors

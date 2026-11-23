@@ -1,0 +1,78 @@
+Metadata-Version: 2.4
+Name: codedna
+Version: 0.1.0
+Summary: Local AI-code attribution with in-source provenance
+License: MIT
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: click>=8.1
+Requires-Dist: rich>=13.0
+Requires-Dist: tree-sitter>=0.22
+Requires-Dist: tree-sitter-python>=0.22
+Requires-Dist: tree-sitter-typescript>=0.22
+Provides-Extra: dev
+Requires-Dist: pytest>=9.0; extra == "dev"
+Requires-Dist: pytest-asyncio>=0.23; extra == "dev"
+Requires-Dist: pytest-cov>=5.0; extra == "dev"
+Requires-Dist: ruff>=0.5; extra == "dev"
+Requires-Dist: mypy>=1.10; extra == "dev"
+Provides-Extra: llm
+Requires-Dist: openai>=1.30; extra == "llm"
+Requires-Dist: anthropic>=0.30; extra == "llm"
+Dynamic: license-file
+
+# CodeDNA
+
+Local AI-code attribution with in-source provenance.
+
+Tracks every edit in VS Code and classifies it as:
+- **Human** — You typed it
+- **AI-Generated** — Copilot/Cursor/Claude wrote it
+- **AI-Modified** — AI changed your code
+- **Ambiguous** — Mixed or unclear origin
+
+Shows a live H/AI ratio in the status bar with gutter colors (green = human, blue = AI). Persists provenance as in-source headers (`codedna:` blocks) so downstream AI agents inherit attribution without rediscovery.
+
+**Zero cloud. Zero network calls. Fully local.**
+
+## Install
+
+```bash
+# VS Code extension
+code --install-extension codedna.vsix
+
+# CLI (for CI, scripts, headless use)
+pip install codedna
+```
+
+## Quick Start
+
+```bash
+# Scan a repo and print attribution report
+codedna scan .
+
+# Show live ratio for current file
+codedna ratio path/to/file.py
+
+# Toggle in-source provenance headers
+codedna headers on
+codedna headers off
+```
+
+## Architecture
+
+```
+┌─────────────────────┐     stdio IPC      ┌──────────────────────┐
+│  VS Code Extension  │ ──────────────────▶ │   codedna-core       │
+│  (TypeScript)       │                     │   (Python)           │
+└─────────────────────┘                     └──────────────────────┘
+       │                                           │
+       ▼                                           ▼
+  onDidChangeTextDocument                  Classifier + SQLite
+  Status bar, gutter colors                In-source headers
+```
+
+## License
+
+MIT
