@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import sqlite3
 from contextlib import contextmanager
 from datetime import datetime
@@ -75,12 +76,13 @@ class Store:
 
     def add_batch(self, attrs: list[Attribution]) -> list[int]:
         with self._conn() as conn:
-            cur = conn.executemany(
-                """
-                INSERT INTO attributions (file, start_line, end_line, label, confidence, timestamp, source_hint, metadata)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                """,
-                [
+            ids = []
+            for a in attrs:
+                cur = conn.execute(
+                    """
+                    INSERT INTO attributions (file, start_line, end_line, label, confidence, timestamp, source_hint, metadata)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
                     (
                         str(a.file),
                         a.start_line,
@@ -89,14 +91,11 @@ class Store:
                         a.confidence,
                         a.timestamp.isoformat(),
                         a.source_hint,
-                        a.metadata,
-                    )
-                    for a in attrs
-                ],
-            )
-            # SQLite doesn't return all lastrowids for executemany, so we fetch them
-            first_id = cur.lastrowid
-            return list(range(first_id - len(attrs) + 1, first_id + 1))
+                        json.dumps(a.metadata),
+                    ),
+                )
+                ids.append(cur.lastrowid)
+            return ids
 
     def get_for_file(self, file: Path) -> list[Attribution]:
         with self._conn() as conn:

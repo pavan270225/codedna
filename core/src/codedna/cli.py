@@ -17,6 +17,7 @@ from .models import AttributionLabel, ProvenanceHeader, ProvenanceRegion
 from .store import Store
 from .classifier import Classifier, ClassifierConfig, EditEvent
 from .header import HeaderWriter, HeaderParser, round_trip_test
+from .llm_classifier import LLMClassifier, LLMClassifierConfig
 
 
 console = Console()
@@ -148,12 +149,32 @@ def verify(file: Path) -> None:
 
 
 @main.command()
-def server() -> None:
+@click.option("--llm", is_flag=True, help="Enable LLM-assisted classification (requires API key)")
+@click.option("--llm-provider", type=click.Choice(["openai", "anthropic"]), default="anthropic", help="LLM provider")
+@click.option("--llm-model", default="claude-3-5-sonnet-20241022", help="LLM model name")
+@click.option("--llm-api-key-env", default="CODEDNA_API_KEY", help="Environment variable for API key")
+def server(llm: bool, llm_provider: str, llm_model: str, llm_api_key_env: str) -> None:
     """Run stdio IPC server for VS Code extension."""
     import asyncio
     from .ipc import IPCServer
+    from .llm_classifier import LLMClassifier, LLMClassifierConfig
 
-    server = IPCServer()
+    if llm:
+        llm_config = LLMClassifierConfig(
+            provider=llm_provider,
+            model=llm_model,
+            api_key_env=llm_api_key_env,
+        )
+        llm_classifier = LLMClassifier(llm_config)
+        if llm_classifier.enabled:
+            console.print(f"[green]LLM classifier enabled:[/green] {llm_provider}/{llm_model}")
+        else:
+            console.print(f"[yellow]LLM classifier disabled:[/yellow] {llm_api_key_env} not set")
+            llm_classifier = None
+    else:
+        llm_classifier = None
+
+    server = IPCServer(llm_classifier=llm_classifier)
     asyncio.run(server.run())
 
 

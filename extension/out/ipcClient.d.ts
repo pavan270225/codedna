@@ -15,14 +15,20 @@ export declare class IPCClient extends EventEmitter {
     private processBuffer;
     private handleResponse;
     private sendRequest;
-    classify(edits: any[]): Promise<any>;
+    classify(edits: unknown[]): Promise<unknown>;
     getRatio(file: string): Promise<{
         human: number;
         ai: number;
         human_pct: number;
     }>;
-    getAttributions(file: string): Promise<any[]>;
-    getReport(): Promise<any>;
+    getAttributions(file: string): Promise<Array<{
+        start_line: number;
+        end_line: number;
+        label: string;
+        confidence: number;
+        source_hint?: string;
+    }>>;
+    getReport(): Promise<unknown>;
     writeHeader(file: string): Promise<void>;
     toggleHeader(file: string): Promise<void>;
     disconnect(): void;

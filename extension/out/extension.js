@@ -108,11 +108,11 @@ function startIPCServer(pythonPath) {
     ipcProcess = (0, child_process_1.spawn)(pythonPath, ['-m', 'codedna', 'server'], {
         stdio: ['pipe', 'pipe', 'inherit'],
     });
-    ipcProcess.on('error', err => {
+    ipcProcess.on('error', (err) => {
         console.error('Failed to start IPC server:', err);
         vscode.window.showErrorMessage(`CodeDNA: Failed to start core server: ${err.message}`);
     });
-    ipcProcess.on('exit', code => {
+    ipcProcess.on('exit', (code) => {
         console.log(`IPC server exited with code ${code}`);
     });
     // Give server time to start
