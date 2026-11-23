@@ -13,6 +13,7 @@ from .models import Attribution, AttributionLabel, ProvenanceHeader, ProvenanceR
 from .store import Store
 from .classifier import Classifier, ClassifierConfig, EditEvent
 from .header import HeaderWriter
+from .llm_classifier import LLMClassifier
 
 
 @dataclass
@@ -39,9 +40,10 @@ class Response:
 class IPCServer:
     """JSON-RPC 2.0 over stdio."""
 
-    def __init__(self):
+    def __init__(self, llm_classifier: LLMClassifier | None = None):
         self.store = Store()
         self.classifier = Classifier()
+        self.llm_classifier = llm_classifier
         self.writer = HeaderWriter(enabled=True)
         self._request_id = 0
 
@@ -123,7 +125,12 @@ class IPCServer:
                 source_hint=e.get("source_hint"),
             ))
 
-        attributions = self.classifier.classify_batch(events)
+        # Use LLM classifier if available, otherwise fallback to heuristic
+        if self.llm_classifier and self.llm_classifier.enabled:
+            attributions = await self.llm_classifier.classify_batch(events)
+        else:
+            attributions = self.classifier.classify_batch(events)
+
         for attr in attributions:
             self.store.add(attr)
 

@@ -18,7 +18,7 @@ export class EditTracker {
     private ipcClient: IPCClient;
     private pendingEdits: Map<string, PendingEdit[]> = new Map();
     private lastChangeTime: Map<string, number> = new Map();
-    private debounceTimer: Map<string, NodeJS.Timeout> = new Map();
+    private debounceTimer: Map<string, ReturnType<typeof setTimeout>> = new Map();
     private readonly DEBOUNCE_MS = 300;
 
     constructor(ipcClient: IPCClient) {

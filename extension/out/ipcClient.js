@@ -100,7 +100,7 @@ class IPCClient extends events_1.EventEmitter {
         const attributions = await this.getAttributions(file);
         if (attributions.length === 0)
             return;
-        const regions = attributions.map(a => ({
+        const regions = attributions.map((a) => ({
             start_line: a.start_line,
             end_line: a.end_line,
             label: a.label,

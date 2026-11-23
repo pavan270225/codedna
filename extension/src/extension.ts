@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 import { spawn, ChildProcess } from 'child_process';
-import { EventEmitter } from 'events';
 import { EditTracker } from './editTracker';
 import { StatusBarManager } from './statusBar';
 import { GutterDecorations } from './gutterDecorations';
@@ -101,12 +100,12 @@ function startIPCServer(pythonPath: string) {
         stdio: ['pipe', 'pipe', 'inherit'],
     });
 
-    ipcProcess.on('error', err => {
+    ipcProcess.on('error', (err: Error) => {
         console.error('Failed to start IPC server:', err);
         vscode.window.showErrorMessage(`CodeDNA: Failed to start core server: ${err.message}`);
     });
 
-    ipcProcess.on('exit', code => {
+    ipcProcess.on('exit', (code: number) => {
         console.log(`IPC server exited with code ${code}`);
     });
 

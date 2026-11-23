@@ -3,14 +3,14 @@ import { EventEmitter } from 'events';
 import * as vscode from 'vscode';
 
 interface PendingRequest {
-    resolve: (value: any) => void;
+    resolve: (value: unknown) => void;
     reject: (error: Error) => void;
 }
 
 interface IPCResponse {
     jsonrpc: string;
     id: number;
-    result?: any;
+    result?: unknown;
     error?: { message: string };
 }
 
@@ -44,12 +44,12 @@ export class IPCClient extends EventEmitter {
             console.error('CodeDNA IPC stderr:', data.toString());
         });
 
-        proc.on('exit', (code) => {
+        proc.on('exit', (code: number) => {
             this.connected = false;
             this.emit('exit', code);
         });
 
-        proc.on('error', (err) => {
+        proc.on('error', (err: Error) => {
             this.emit('error', err);
         });
     }
@@ -82,7 +82,7 @@ export class IPCClient extends EventEmitter {
         }
     }
 
-    private async sendRequest(method: string, params: any): Promise<any> {
+    private async sendRequest(method: string, params: unknown): Promise<unknown> {
         if (!this.connected || !this.process) {
             throw new Error('IPC client not connected');
         }
@@ -93,7 +93,7 @@ export class IPCClient extends EventEmitter {
         return new Promise((resolve, reject) => {
             this.pendingRequests.set(id, { resolve, reject });
 
-            this.process!.stdin?.write(request + '\n', (err) => {
+            this.process!.stdin?.write(request + '\n', (err: Error | null | undefined) => {
                 if (err) {
                     this.pendingRequests.delete(id);
                     reject(err);
@@ -109,20 +109,20 @@ export class IPCClient extends EventEmitter {
         });
     }
 
-    async classify(edits: any[]): Promise<any> {
+    async classify(edits: unknown[]): Promise<unknown> {
         return this.sendRequest('classify', { events: edits });
     }
 
     async getRatio(file: string): Promise<{ human: number; ai: number; human_pct: number }> {
-        return this.sendRequest('get_ratio', { file });
+        return this.sendRequest('get_ratio', { file }) as Promise<{ human: number; ai: number; human_pct: number }>;
     }
 
-    async getAttributions(file: string): Promise<any[]> {
-        const result = await this.sendRequest('get_attributions', { file });
+    async getAttributions(file: string): Promise<Array<{ start_line: number; end_line: number; label: string; confidence: number; source_hint?: string }>> {
+        const result = await this.sendRequest('get_attributions', { file }) as { attributions?: Array<{ start_line: number; end_line: number; label: string; confidence: number; source_hint?: string }> };
         return result.attributions || [];
     }
 
-    async getReport(): Promise<any> {
+    async getReport(): Promise<unknown> {
         return this.sendRequest('get_status', {});
     }
 
@@ -130,7 +130,7 @@ export class IPCClient extends EventEmitter {
         const attributions = await this.getAttributions(file);
         if (attributions.length === 0) return;
 
-        const regions = attributions.map(a => ({
+        const regions = attributions.map((a: { start_line: number; end_line: number; label: string; confidence: number; source_hint?: string }) => ({
             start_line: a.start_line,
             end_line: a.end_line,
             label: a.label,

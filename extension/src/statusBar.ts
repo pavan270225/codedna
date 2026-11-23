@@ -7,7 +7,7 @@ import { IPCClient } from './ipcClient';
 export class StatusBarManager {
     private ipcClient: IPCClient;
     private statusBarItem: vscode.StatusBarItem;
-    private updateTimer: NodeJS.Timeout | null = null;
+    private updateTimer: ReturnType<typeof setInterval> | null = null;
 
     constructor(ipcClient: IPCClient) {
         this.ipcClient = ipcClient;
